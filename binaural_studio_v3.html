@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Бинаурал Студио 3.0</title>
+<style>
+  :root {
+    --bg: #0d0d1a;
+    --surface: #13132a;
+    --card: #1a1a35;
+    --accent: #6c63ff;
+    --accent2: #ff6b9d;
+    --accent3: #43e8d8;
+    --text: #e8e8f0;
+    --muted: #7070a0;
+    --border: #2a2a50;
+    --success: #43e8a0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    padding: 20px;
+    background-image: radial-gradient(ellipse at 20% 50%, #1a0a3a 0%, transparent 60%),
+                      radial-gradient(ellipse at 80% 20%, #0a1a3a 0%, transparent 50%);
+  }
+  h1 {
+    text-align: center;
+    font-size: 2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 4px;
+  }
+  .subtitle { text-align: center; color: var(--muted); margin-bottom: 24px; font-size: 0.9rem; }
+  .lang-bar {
+    display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;
+  }
+  .lang-btn {
+    background: var(--card); border: 1px solid var(--border); color: var(--muted);
+    padding: 5px 12px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s;
+  }
+  .lang-btn.active, .lang-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; max-width: 1200px; margin: 0 auto; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px;
+    transition: border-color 0.3s;
+  }
+  .card:hover { border-color: var(--accent); }
+  .card h2 { font-size: 1rem; color: var(--accent3); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .wave-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .wave-btn {
+    background: var(--surface); border: 1px solid var(--border); color: var(--text);
+    padding: 10px 4px; border-radius: 10px; cursor: pointer; text-align: center;
+    font-size: 0.72rem; transition: all 0.2s; line-height: 1.4;
+  }
+  .wave-btn .freq { font-size: 1rem; font-weight: 700; display: block; color: var(--accent); }
+  .wave-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .wave-btn.active .freq { color: #fff; }
+  .sound-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .sound-btn {
+    background: var(--surface); border: 1px solid var(--border); color: var(--text);
+    padding: 10px 6px; border-radius: 10px; cursor: pointer; text-align: center;
+    font-size: 0.8rem; transition: all 0.2s;
+  }
+  .sound-btn .icon { font-size: 1.4rem; display: block; margin-bottom: 4px; }
+  .sound-btn.active { border-color: var(--accent2); background: rgba(255,107,157,0.15); }
+  .melody-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .melody-btn {
+    background: var(--surface); border: 1px solid var(--border); color: var(--text);
+    padding: 10px 6px; border-radius: 10px; cursor: pointer; text-align: center;
+    font-size: 0.8rem; transition: all 0.2s;
+  }
+  .melody-btn .icon { font-size: 1.4rem; display: block; margin-bottom: 4px; }
+  .melody-btn.active { border-color: var(--accent3); background: rgba(67,232,216,0.15); }
+  .slider-row { margin-bottom: 14px; }
+  .slider-row label { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--muted); margin-bottom: 6px; }
+  .slider-row label span { color: var(--text); }
+  input[type=range] {
+    width: 100%; accent-color: var(--accent); cursor: pointer;
+    height: 4px; border-radius: 2px;
+  }
+  .duration-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .dur-btn {
+    background: var(--surface); border: 1px solid var(--border); color: var(--text);
+    padding: 8px 4px; border-radius: 8px; cursor: pointer; text-align: center;
+    font-size: 0.78rem; transition: all 0.2s;
+  }
+  .dur-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .controls { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+  .btn-play {
+    flex: 1; background: linear-gradient(135deg, var(--accent), #9b59ff);
+    border: none; color: #fff; padding: 14px; border-radius: 12px;
+    font-size: 1rem; font-weight: 700; cursor: pointer; transition: opacity 0.2s; min-width: 120px;
+  }
+  .btn-play:hover { opacity: 0.85; }
+  .btn-download {
+    background: linear-gradient(135deg, #2a8a5a, var(--success));
+    border: none; color: #fff; padding: 14px 18px; border-radius: 12px;
+    font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s;
+  }
+  .btn-download:hover { opacity: 0.85; }
+  .btn-save {
+    background: var(--surface); border: 1px solid var(--border); color: var(--text);
+    padding: 14px 14px; border-radius: 12px; font-size: 0.9rem; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-save:hover { border-color: var(--accent); color: var(--accent); }
+  .timer-bar {
+    background: var(--surface); border-radius: 8px; height: 6px; margin-top: 14px; overflow: hidden;
+  }
+  .timer-fill {
+    height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent3));
+    width: 0%; transition: width 1s linear;
+  }
+  .timer-label { text-align: center; font-size: 0.8rem; color: var(--muted); margin-top: 6px; }
+  .favorites { margin-top: 12px; }
+  .fav-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .fav-tag {
+    background: var(--surface); border: 1px solid var(--border); color: var(--muted);
+    padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .fav-tag:hover { border-color: var(--accent); color: var(--text); }
+  .fav-del { color: var(--accent2); font-size: 0.9rem; }
+  .upload-area {
+    border: 2px dashed var(--border); border-radius: 12px; padding: 20px; text-align: center;
+    cursor: pointer; transition: all 0.2s; color: var(--muted);
+  }
+  .upload-area:hover { border-color: var(--accent); color: var(--text); }
+  .upload-area.has-file { border-color: var(--success); color: var(--success); }
+  .status-badge {
+    display: inline-block; padding: 4px 10px; border-radius: 20px;
+    font-size: 0.75rem; margin-left: 8px; vertical-align: middle;
+  }
+  .status-playing { background: rgba(67,232,160,0.2); color: var(--success); }
+  .status-stopped { background: rgba(112,112,160,0.2); color: var(--muted); }
+  .info-box {
+    background: rgba(108,99,255,0.1); border: 1px solid rgba(108,99,255,0.3);
+    border-radius: 10px; padding: 12px; font-size: 0.8rem; color: var(--muted); margin-top: 12px;
+    line-height: 1.6;
+  }
+  .info-box strong { color: var(--accent3); }
+  .full-row { grid-column: 1 / -1; }
+  .progress-label { font-size: 0.8rem; color: var(--accent3); margin-top: 8px; text-align: center; display: none; }
+  select {
+    background: var(--surface); border: 1px solid var(--border); color: var(--text);
+    padding: 8px 12px; border-radius: 8px; width: 100%; font-size: 0.85rem; cursor: pointer;
+  }
+  select:focus { outline: none; border-color: var(--accent); }
+  @media (max-width: 600px) {
+    h1 { font-size: 1.5rem; }
+    .wave-grid { grid-template-columns: repeat(3, 1fr); }
+    .controls { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<h1>🎧 Бинаурал Студио <span style="font-size:0.6em;color:var(--accent2)">3.0</span></h1>
+<p class="subtitle" data-t="subtitle">Терапевтична аудио среда с реални природни фонове</p>
+
+<div class="lang-bar">
+  <button class="lang-btn active" onclick="setLang('bg')">🇧🇬 BG</button>
+  <button class="lang-btn" onclick="setLang('en')">🇬🇧 EN</button>
+  <button class="lang-btn" onclick="setLang('de')">🇩🇪 DE</button>
+  <button class="lang-btn" onclick="setLang('es')">🇪🇸 ES</button>
+  <button class="lang-btn" onclick="setLang('nl')">🇳🇱 NL</button>
+</div>
+
+<div class="grid">
+
+  <!-- BINAURAL WAVES -->
+  <div class="card">
+    <h2>🧠 <span data-t="waves">Бинаурални вълни</span>
+      <span class="status-badge" id="statusBadge">⬜ <span data-t="stopped">Спряно</span></span>
+    </h2>
+    <div class="wave-grid">
+      <button class="wave-btn active" data-hz="2" onclick="selectWave(this,2,'Delta')">
+        <span class="freq">2 Hz</span>Delta<br><span style="font-size:0.65rem;color:var(--muted)" data-t="w_delta">Дълбок сън</span>
+      </button>
+      <button class="wave-btn" data-hz="6" onclick="selectWave(this,6,'Theta')">
+        <span class="freq">6 Hz</span>Theta<br><span style="font-size:0.65rem;color:var(--muted)" data-t="w_theta">Медитация</span>
+      </button>
+      <button class="wave-btn" data-hz="10" onclick="selectWave(this,10,'Alpha')">
+        <span class="freq">10 Hz</span>Alpha<br><span style="font-size:0.65rem;color:var(--muted)" data-t="w_alpha">Релакс</span>
+      </button>
+      <button class="wave-btn" data-hz="20" onclick="selectWave(this,20,'Beta')">
+        <span class="freq">20 Hz</span>Beta<br><span style="font-size:0.65rem;color:var(--muted)" data-t="w_beta">Фокус</span>
+      </button>
+      <button class="wave-btn" data-hz="40" onclick="selectWave(this,40,'Gamma')">
+        <span class="freq">40 Hz</span>Gamma<br><span style="font-size:0.65rem;color:var(--muted)" data-t="w_gamma">Пик</span>
+      </button>
+    </div>
+    <div class="info-box" style="margin-top:12px">
+      <strong data-t="selected">Избрано:</strong> <span id="waveInfo">Delta 2 Hz — Дълбок сън и регенерация</span>
+    </div>
+  </div>
+
+  <!-- NATURE SOUNDS -->
+  <div class="card">
+    <h2>🌿 <span data-t="nature">Реални природни звуци</span></h2>
+    <div class="sound-grid">
+      <button class="sound-btn active" data-sound="rain" onclick="selectSound(this,'rain')">
+        <span class="icon">🌧️</span><span data-t="s_rain">Дъжд</span>
+      </button>
+      <button class="sound-btn" data-sound="ocean" onclick="selectSound(this,'ocean')">
+        <span class="icon">🌊</span><span data-t="s_ocean">Океан</span>
+      </button>
+      <button class="sound-btn" data-sound="forest" onclick="selectSound(this,'forest')">
+        <span class="icon">🌲</span><span data-t="s_forest">Гора</span>
+      </button>
+      <button class="sound-btn" data-sound="fire" onclick="selectSound(this,'fire')">
+        <span class="icon">🔥</span><span data-t="s_fire">Огън</span>
+      </button>
+      <button class="sound-btn" data-sound="wind" onclick="selectSound(this,'wind')">
+        <span class="icon">💨</span><span data-t="s_wind">Вятър</span>
+      </button>
+      <button class="sound-btn" data-sound="none" onclick="selectSound(this,'none')">
+        <span class="icon">🔇</span><span data-t="s_none">Без фон</span>
+      </button>
+    </div>
+    <div class="slider-row" style="margin-top:14px">
+      <label><span data-t="vol_nature">Сила на природата</span> <span id="volNatureVal">55%</span></label>
+      <input type="range" id="volNature" min="0" max="100" value="55" oninput="updateVol('nature',this.value)">
+    </div>
+  </div>
+
+  <!-- MELODY -->
+  <div class="card">
+    <h2>🎵 <span data-t="melody">Терапевтична мелодия</span></h2>
+    <div class="melody-grid">
+      <button class="melody-btn active" data-mel="bowl" onclick="selectMelody(this,'bowl')">
+        <span class="icon">🔔</span><span data-t="m_bowl">Тибетски</span>
+      </button>
+      <button class="melody-btn" data-mel="piano" onclick="selectMelody(this,'piano')">
+        <span class="icon">🎹</span><span data-t="m_piano">Пиано</span>
+      </button>
+      <button class="melody-btn" data-mel="drone" onclick="selectMelody(this,'drone')">
+        <span class="icon">🕉️</span><span data-t="m_drone">Дрон</span>
+      </button>
+      <button class="melody-btn" data-mel="harp" onclick="selectMelody(this,'harp')">
+        <span class="icon">🎼</span><span data-t="m_harp">Арфа</span>
+      </button>
+      <button class="melody-btn" data-mel="flute" onclick="selectMelody(this,'flute')">
+        <span class="icon">🎶</span><span data-t="m_flute">Флейта</span>
+      </button>
+      <button class="melody-btn" data-mel="none" onclick="selectMelody(this,'none')">
+        <span class="icon">🔇</span><span data-t="s_none">Без</span>
+      </button>
+    </div>
+    <div class="slider-row" style="margin-top:14px">
+      <label><span data-t="vol_melody">Сила на мелодията</span> <span id="volMelodyVal">40%</span></label>
+      <input type="range" id="volMelody" min="0" max="100" value="40" oninput="updateVol('melody',this.value)">
+    </div>
+  </div>
+
+  <!-- VOLUMES & UPLOAD -->
+  <div class="card">
+    <h2>🎚️ <span data-t="mixer">Миксер</span></h2>
+    <div class="slider-row">
+      <label><span data-t="vol_binaural">Бинаурални вълни</span> <span id="volBinauralVal">70%</span></label>
+      <input type="range" id="volBinaural" min="0" max="100" value="70" oninput="updateVol('binaural',this.value)">
+    </div>
+    <div class="slider-row">
+      <label><span data-t="vol_music">Твоята музика</span> <span id="volMusicVal">50%</span></label>
+      <input type="range" id="volMusic" min="0" max="100" value="50" oninput="updateVol('music',this.value)">
+    </div>
+    <div class="upload-area" id="uploadArea" onclick="document.getElementById('musicFile').click()">
+      <div style="font-size:2rem">🎵</div>
+      <div data-t="upload_hint">Качи своя музика (MP3/WAV/OGG)</div>
+      <div style="font-size:0.75rem;margin-top:4px" data-t="upload_sub">Кликни или провлачи файл тук</div>
+    </div>
+    <input type="file" id="musicFile" accept="audio/*" style="display:none" onchange="loadUserMusic(this)">
+  </div>
+
+  <!-- DURATION & CONTROLS -->
+  <div class="card full-row">
+    <h2>⏱️ <span data-t="duration">Продължителност</span></h2>
+    <div class="duration-grid">
+      <button class="dur-btn" data-min="5" onclick="selectDur(this,5)">5 мин</button>
+      <button class="dur-btn active" data-min="15" onclick="selectDur(this,15)">15 мин</button>
+      <button class="dur-btn" data-min="30" onclick="selectDur(this,30)">30 мин</button>
+      <button class="dur-btn" data-min="45" onclick="selectDur(this,45)">45 мин</button>
+      <button class="dur-btn" data-min="60" onclick="selectDur(this,60)">60 мин</button>
+    </div>
+    <div class="controls">
+      <button class="btn-play" id="playBtn" onclick="togglePlay()">▶ <span data-t="play">Старт</span></button>
+      <button class="btn-download" onclick="downloadMix()">⬇️ <span data-t="download">Свали WAV</span></button>
+      <button class="btn-save" onclick="saveFavorite()">⭐ <span data-t="save">Запази</span></button>
+    </div>
+    <div class="timer-bar"><div class="timer-fill" id="timerFill"></div></div>
+    <div class="timer-label" id="timerLabel">—</div>
+    <div class="progress-label" id="dlProgress">⏳ <span data-t="rendering">Рендерира се...</span></div>
+  </div>
+
+  <!-- FAVORITES -->
+  <div class="card full-row">
+    <h2>⭐ <span data-t="favorites">Любими миксове</span></h2>
+    <div class="fav-list" id="favList"></div>
+  </div>
+
+</div>
+
+<!-- WAVE INFO DATA -->
+<div id="waveData" style="display:none"
+  data-2="Delta 2 Hz"
+  data-6="Theta 6 Hz"
+  data-10="Alpha 10 Hz"
+  data-20="Beta 20 Hz"
+  data-40="Gamma 40 Hz">
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  TRANSLATIONS
+// ═══════════════════════════════════════════════
+const T = {
+  bg: {
+    subtitle: 'Терапевтична аудио среда с реални природни фонове',
+    waves: 'Бинаурални вълни', stopped: 'Спряно', playing: 'Пуска се',
+    w_delta:'Дълбок сън', w_theta:'Медитация', w_alpha:'Релакс', w_beta:'Фокус', w_gamma:'Пик',
+    nature: 'Реални природни звуци',
+    s_rain:'Дъжд', s_ocean:'Океан', s_forest:'Гора', s_fire:'Огън', s_wind:'Вятър', s_none:'Без',
+    melody: 'Терапевтична мелодия',
+    m_bowl:'Тибетски', m_piano:'Пиано', m_drone:'Дрон', m_harp:'Арфа', m_flute:'Флейта',
+    mixer: 'Миксер',
+    vol_binaural:'Бинаурални вълни', vol_nature:'Сила на природата',
+    vol_melody:'Сила на мелодията', vol_music:'Твоята музика',
+    upload_hint:'Качи своя музика (MP3/WAV/OGG)', upload_sub:'Кликни или провлачи файл тук',
+    duration: 'Продължителност', play:'Старт', stop:'Стоп',
+    download:'Свали WAV', save:'Запази', favorites:'Любими миксове',
+    selected:'Избрано', rendering:'Рендерира се...',
+    wi_delta:'Delta 2 Hz — Дълбок сън и регенерация',
+    wi_theta:'Theta 6 Hz — Медитация и творчество',
+    wi_alpha:'Alpha 10 Hz — Релаксация и спокойствие',
+    wi_beta:'Beta 20 Hz — Фокус и концентрация',
+    wi_gamma:'Gamma 40 Hz — Пиков перформанс',
+  },
+  en: {
+    subtitle: 'Therapeutic audio environment with real nature backgrounds',
+    waves: 'Binaural waves', stopped: 'Stopped', playing: 'Playing',
+    w_delta:'Deep sleep', w_theta:'Meditation', w_alpha:'Relax', w_beta:'Focus', w_gamma:'Peak',
+    nature: 'Real nature sounds',
+    s_rain:'Rain', s_ocean:'Ocean', s_forest:'Forest', s_fire:'Fire', s_wind:'Wind', s_none:'None',
+    melody: 'Therapeutic melody',
+    m_bowl:'Tibetan', m_piano:'Piano', m_drone:'Drone', m_harp:'Harp', m_flute:'Flute',
+    mixer: 'Mixer',
+    vol_binaural:'Binaural waves', vol_nature:'Nature volume',
+    vol_melody:'Melody volume', vol_music:'Your music',
+    upload_hint:'Upload your music (MP3/WAV/OGG)', upload_sub:'Click or drag file here',
+    duration: 'Duration', play:'Start', stop:'Stop',
+    download:'Download WAV', save:'Save', favorites:'Favorite mixes',
+    selected:'Selected', rendering:'Rendering...',
+    wi_delta:'Delta 2 Hz — Deep sleep & regeneration',
+    wi_theta:'Theta 6 Hz — Meditation & creativity',
+    wi_alpha:'Alpha 10 Hz — Relaxation & calm',
+    wi_beta:'Beta 20 Hz — Focus & concentration',
+    wi_gamma:'Gamma 40 Hz — Peak performance',
+  },
+  de: {
+    subtitle: 'Therapeutische Audioumgebung mit echten Naturhintergründen',
+    waves: 'Binaurale Wellen', stopped: 'Gestoppt', playing: 'Läuft',
+    w_delta:'Tiefschlaf', w_theta:'Meditation', w_alpha:'Entspannung', w_beta:'Fokus', w_gamma:'Spitze',
+    nature: 'Echte Naturgeräusche',
+    s_rain:'Regen', s_ocean:'Ozean', s_forest:'Wald', s_fire:'Feuer', s_wind:'Wind', s_none:'Keine',
+    melody: 'Therapeutische Melodie',
+    m_bowl:'Tibetisch', m_piano:'Klavier', m_drone:'Drone', m_harp:'Harfe', m_flute:'Flöte',
+    mixer: 'Mischer',
+    vol_binaural:'Binaurale Wellen', vol_nature:'Naturvolumen',
+    vol_melody:'Melodievolumen', vol_music:'Eigene Musik',
+    upload_hint:'Musik hochladen (MP3/WAV/OGG)', upload_sub:'Klicken oder Datei hierher ziehen',
+    duration: 'Dauer', play:'Start', stop:'Stop',
+    download:'WAV herunterladen', save:'Speichern', favorites:'Lieblings-Mixes',
+    selected:'Ausgewählt', rendering:'Wird gerendert...',
+    wi_delta:'Delta 2 Hz — Tiefschlaf & Regeneration',
+    wi_theta:'Theta 6 Hz — Meditation & Kreativität',
+    wi_alpha:'Alpha 10 Hz — Entspannung & Ruhe',
+    wi_beta:'Beta 20 Hz — Fokus & Konzentration',
+    wi_gamma:'Gamma 40 Hz — Spitzenleistung',
+  },
+  es: {
+    subtitle: 'Entorno de audio terapéutico con fondos naturales reales',
+    waves: 'Ondas binaurales', stopped: 'Detenido', playing: 'Reproduciendo',
+    w_delta:'Sueño profundo', w_theta:'Meditación', w_alpha:'Relajación', w_beta:'Enfoque', w_gamma:'Cima',
+    nature: 'Sonidos naturales reales',
+    s_rain:'Lluvia', s_ocean:'Océano', s_forest:'Bosque', s_fire:'Fuego', s_wind:'Viento', s_none:'Ninguno',
+    melody: 'Melodía terapéutica',
+    m_bowl:'Tibetano', m_piano:'Piano', m_drone:'Drone', m_harp:'Arpa', m_flute:'Flauta',
+    mixer: 'Mezclador',
+    vol_binaural:'Ondas binaurales', vol_nature:'Volumen naturaleza',
+    vol_melody:'Volumen melodía', vol_music:'Tu música',
+    upload_hint:'Sube tu música (MP3/WAV/OGG)', upload_sub:'Haz clic o arrastra el archivo aquí',
+    duration: 'Duración', play:'Iniciar', stop:'Parar',
+    download:'Descargar WAV', save:'Guardar', favorites:'Mezclas favoritas',
+    selected:'Seleccionado', rendering:'Renderizando...',
+    wi_delta:'Delta 2 Hz — Sueño profundo y regeneración',
+    wi_theta:'Theta 6 Hz — Meditación y creatividad',
+    wi_alpha:'Alpha 10 Hz — Relajación y calma',
+    wi_beta:'Beta 20 Hz — Enfoque y concentración',
+    wi_gamma:'Gamma 40 Hz — Rendimiento máximo',
+  },
+  nl: {
+    subtitle: 'Therapeutische audio-omgeving met echte natuurachtergronden',
+    waves: 'Binaurale golven', stopped: 'Gestopt', playing: 'Speelt',
+    w_delta:'Diepe slaap', w_theta:'Meditatie', w_alpha:'Ontspanning', w_beta:'Focus', w_gamma:'Piek',
+    nature: 'Echte natuurgeluiden',
+    s_rain:'Regen', s_ocean:'Oceaan', s_forest:'Bos', s_fire:'Vuur', s_wind:'Wind', s_none:'Geen',
+    melody: 'Therapeutische melodie',
+    m_bowl:'Tibetaans', m_piano:'Piano', m_drone:'Drone', m_harp:'Harp', m_flute:'Fluit',
+    mixer: 'Mixer',
+    vol_binaural:'Binaurale golven', vol_nature:'Natuurvolume',
+    vol_melody:'Melodievolume', vol_music:'Jouw muziek',
+    upload_hint:'Upload muziek (MP3/WAV/OGG)', upload_sub:'Klik of sleep bestand hier',
+    duration: 'Duur', play:'Starten', stop:'Stoppen',
+    download:'WAV downloaden', save:'Opslaan', favorites:'Favoriete mixen',
+    selected:'Geselecteerd', rendering:'Renderen...',
+    wi_delta:'Delta 2 Hz — Diepe slaap & regeneratie',
+    wi_theta:'Theta 6 Hz — Meditatie & creativiteit',
+    wi_alpha:'Alpha 10 Hz — Ontspanning & rust',
+    wi_beta:'Beta 20 Hz — Focus & concentratie',
+    wi_gamma:'Gamma 40 Hz — Topprestatie',
+  }
+};
+
+let lang = 'bg';
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.lang-btn[onclick="setLang('${l}')"]`).classList.add('active');
+  document.querySelectorAll('[data-t]').forEach(el => {
+    const key = el.getAttribute('data-t');
+    if (T[l][key]) el.textContent = T[l][key];
+  });
+  updateWaveInfo();
+  updateStatusBadge();
+  if (isPlaying) document.querySelector('[data-t=play]').textContent = T[l].stop;
+}
+
+// ═══════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════
+let ctx = null;
+let isPlaying = false;
+let selectedHz = 2;
+let selectedSound = 'rain';
+let selectedMelody = 'bowl';
+let selectedDuration = 15;
+let timerInterval = null;
+let startTime = 0;
+let nodes = {};
+let userBuffer = null;
+
+const vols = { binaural: 0.70, nature: 0.55, melody: 0.40, music: 0.50 };
+
+// ═══════════════════════════════════════════════
+//  UI HELPERS
+// ═══════════════════════════════════════════════
+function selectWave(btn, hz, name) {
+  document.querySelectorAll('.wave-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedHz = hz;
+  updateWaveInfo();
+  if (isPlaying) { restartBinaural(); }
+}
+
+function updateWaveInfo() {
+  const keys = {2:'wi_delta',6:'wi_theta',10:'wi_alpha',20:'wi_beta',40:'wi_gamma'};
+  document.getElementById('waveInfo').textContent = T[lang][keys[selectedHz]] || '';
+}
+
+function selectSound(btn, sound) {
+  document.querySelectorAll('.sound-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedSound = sound;
+  if (isPlaying) { stopNature(); if (sound !== 'none') startNature(); }
+}
+
+function selectMelody(btn, mel) {
+  document.querySelectorAll('.melody-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedMelody = mel;
+  if (isPlaying) { stopMelody(); if (mel !== 'none') startMelody(); }
+}
+
+function selectDur(btn, min) {
+  document.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedDuration = min;
+}
+
+function updateVol(type, val) {
+  vols[type] = val / 100;
+  document.getElementById(`vol${type.charAt(0).toUpperCase()+type.slice(1)}Val`).textContent = val + '%';
+  if (nodes[type + 'Gain']) nodes[type + 'Gain'].gain.setTargetAtTime(vols[type], ctx.currentTime, 0.1);
+}
+
+function updateStatusBadge() {
+  const badge = document.getElementById('statusBadge');
+  if (isPlaying) {
+    badge.className = 'status-badge status-playing';
+    badge.textContent = '🟢 ' + T[lang].playing;
+  } else {
+    badge.className = 'status-badge status-stopped';
+    badge.textContent = '⬜ ' + T[lang].stopped;
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  AUDIO ENGINE
+// ═══════════════════════════════════════════════
+function getCtx() {
+  if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 });
+  if (ctx.state === 'suspended') ctx.resume();
+  return ctx;
+}
+
+// ── Binaural Beats ──────────────────────────────
+function startBinaural() {
+  const ac = getCtx();
+  const base = 200;
+  const gainNode = ac.createGain();
+  gainNode.gain.value = vols.binaural;
+  gainNode.connect(ac.destination);
+  nodes.binauralGain = gainNode;
+
+  const merger = ac.createChannelMerger(2);
+  merger.connect(gainNode);
+
+  const oscL = ac.createOscillator();
+  oscL.type = 'sine';
+  oscL.frequency.value = base;
+
+  const oscR = ac.createOscillator();
+  oscR.type = 'sine';
+  oscR.frequency.value = base + selectedHz;
+
+  // Route L to left, R to right
+  const splitterL = ac.createChannelSplitter(1);
+  const splitterR = ac.createChannelSplitter(1);
+
+  const gainL = ac.createGain(); gainL.gain.value = 1;
+  const gainR = ac.createGain(); gainR.gain.value = 1;
+
+  oscL.connect(gainL); gainL.connect(merger, 0, 0);
+  oscR.connect(gainR); gainR.connect(merger, 0, 1);
+
+  oscL.start(); oscR.start();
+  nodes.oscL = oscL; nodes.oscR = oscR;
+  nodes.gainL = gainL; nodes.gainR = gainR;
+  nodes.merger = merger;
+}
+
+function stopBinaural() {
+  ['oscL','oscR'].forEach(k => { try { nodes[k] && nodes[k].stop(); } catch(e){} });
+  ['oscL','oscR','gainL','gainR','merger','binauralGain'].forEach(k => { nodes[k] = null; });
+}
+
+function restartBinaural() { stopBinaural(); startBinaural(); }
+
+// ── Nature Sounds (Synthesized Realistically) ──
+function createNoiseBuffer(ac, seconds) {
+  const len = ac.sampleRate * seconds;
+  const buf = ac.createBuffer(1, len, ac.sampleRate);
+  const data = buf.getChannelData(0);
+  // Pink noise via Paul Kellet's approximation
+  let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+  for (let i = 0; i < len; i++) {
+    const w = Math.random() * 2 - 1;
+    b0 = 0.99886*b0 + w*0.0555179; b1 = 0.99332*b1 + w*0.0750759;
+    b2 = 0.96900*b2 + w*0.1538520; b3 = 0.86650*b3 + w*0.3104856;
+    b4 = 0.55000*b4 + w*0.5329522; b5 = -0.7616*b5 - w*0.0168980;
+    data[i] = (b0+b1+b2+b3+b4+b5+b6+w*0.5362) * 0.11;
+    b6 = w * 0.115926;
+  }
+  return buf;
+}
+
+function createBrownNoiseBuffer(ac, seconds) {
+  const len = ac.sampleRate * seconds;
+  const buf = ac.createBuffer(1, len, ac.sampleRate);
+  const data = buf.getChannelData(0);
+  let last = 0;
+  for (let i = 0; i < len; i++) {
+    const w = Math.random() * 2 - 1;
+    last = (last + 0.02 * w) / 1.02;
+    data[i] = last * 3.5;
+  }
+  return buf;
+}
+
+function startNature() {
+  const ac = getCtx();
+  const gainNode = ac.createGain();
+  gainNode.gain.value = vols.nature;
+  gainNode.connect(ac.destination);
+  nodes.natureGain = gainNode;
+
+  switch(selectedSound) {
+    case 'rain': buildRain(ac, gainNode); break;
+    case 'ocean': buildOcean(ac, gainNode); break;
+    case 'forest': buildForest(ac, gainNode); break;
+    case 'fire': buildFire(ac, gainNode); break;
+    case 'wind': buildWind(ac, gainNode); break;
+  }
+}
+
+function buildRain(ac, out) {
+  // Heavy rain: high-pass pink noise + rapid amplitude modulation
+  const buf = createNoiseBuffer(ac, 4);
+  const src = ac.createBufferSource();
+  src.buffer = buf; src.loop = true;
+
+  const hp = ac.createBiquadFilter();
+  hp.type = 'highpass'; hp.frequency.value = 1200; hp.Q.value = 0.5;
+
+  const bp = ac.createBiquadFilter();
+  bp.type = 'bandpass'; bp.frequency.value = 3000; bp.Q.value = 0.8;
+
+  // Drip modulation
+  const lfo = ac.createOscillator();
+  lfo.type = 'sine'; lfo.frequency.value = 14;
+  const lfoGain = ac.createGain(); lfoGain.gain.value = 0.3;
+  const baseGain = ac.createGain(); baseGain.gain.value = 0.7;
+  lfo.connect(lfoGain); lfoGain.connect(baseGain.gain);
+
+  src.connect(hp); hp.connect(bp); bp.connect(baseGain); baseGain.connect(out);
+  lfo.start(); src.start();
+  nodes.natureSrc = src; nodes.natureLfo = lfo;
+  nodes.natureHp = hp; nodes.natureBp = bp;
+  nodes.natureBaseGain = baseGain; nodes.natureLfoGain = lfoGain;
+}
+
+function buildOcean(ac, out) {
+  // Ocean waves: brown noise + slow amplitude LFO (0.1 Hz wave rhythm)
+  const buf = createBrownNoiseBuffer(ac, 8);
+  const src = ac.createBufferSource();
+  src.buffer = buf; src.loop = true;
+
+  const lp = ac.createBiquadFilter();
+  lp.type = 'lowpass'; lp.frequency.value = 600; lp.Q.value = 1.2;
+
+  const lp2 = ac.createBiquadFilter();
+  lp2.type = 'lowpass'; lp2.frequency.value = 400;
+
+  // Wave swell LFO
+  const lfo = ac.createOscillator();
+  lfo.type = 'sine'; lfo.frequency.value = 0.12;
+  const lfoGain = ac.createGain(); lfoGain.gain.value = 0.45;
+  const baseGain = ac.createGain(); baseGain.gain.value = 0.55;
+  lfo.connect(lfoGain); lfoGain.connect(baseGain.gain);
+
+  // Second swell for realism
+  const lfo2 = ac.createOscillator();
+  lfo2.type = 'sine'; lfo2.frequency.value = 0.07;
+  const lfo2Gain = ac.createGain(); lfo2Gain.gain.value = 0.2;
+  lfo2.connect(lfo2Gain); lfo2Gain.connect(baseGain.gain);
+
+  src.connect(lp); lp.connect(lp2); lp2.connect(baseGain); baseGain.connect(out);
+  lfo.start(); lfo2.start(); src.start();
+  nodes.natureSrc = src; nodes.natureLfo = lfo; nodes.natureLfo2 = lfo2;
+  nodes.naturalp = lp; nodes.natureLp2 = lp2;
+  nodes.natureBaseGain = baseGain;
+}
+
+function buildForest(ac, out) {
+  // Forest: gentle pink noise (leaves) + occasional bird chirps
+  const buf = createNoiseBuffer(ac, 6);
+  const src = ac.createBufferSource();
+  src.buffer = buf; src.loop = true;
+
+  const bp = ac.createBiquadFilter();
+  bp.type = 'bandpass'; bp.frequency.value = 700; bp.Q.value = 0.4;
+
+  const baseGain = ac.createGain(); baseGain.gain.value = 0.35;
+  // Gentle wind-in-leaves LFO
+  const lfo = ac.createOscillator();
+  lfo.type = 'sine'; lfo.frequency.value = 0.3;
+  const lfoGain = ac.createGain(); lfoGain.gain.value = 0.15;
+  lfo.connect(lfoGain); lfoGain.connect(baseGain.gain);
+
+  src.connect(bp); bp.connect(baseGain); baseGain.connect(out);
+  lfo.start(); src.start();
+  nodes.natureSrc = src; nodes.natureLfo = lfo;
+  nodes.natureBp = bp; nodes.natureBaseGain = baseGain;
+
+  // Bird chirps — scheduled oscillator bursts
+  scheduleBirds(ac, out);
+}
+
+function scheduleBirds(ac, out) {
+  const chirpFreqs = [3200, 4000, 2800, 3600, 5000];
+  function nextChirp() {
+    if (!isPlaying) return;
+    const delay = 3 + Math.random() * 8;
+    nodes.birdTimeout = setTimeout(() => {
+      if (!isPlaying) return;
+      const freq = chirpFreqs[Math.floor(Math.random() * chirpFreqs.length)];
+      for (let i = 0; i < 3; i++) {
+        setTimeout(() => {
+          if (!isPlaying) return;
+          const osc = ac.createOscillator();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, ac.currentTime);
+          osc.frequency.linearRampToValueAtTime(freq * 1.15, ac.currentTime + 0.06);
+          osc.frequency.linearRampToValueAtTime(freq * 0.9, ac.currentTime + 0.12);
+          const g = ac.createGain();
+          g.gain.setValueAtTime(0, ac.currentTime);
+          g.gain.linearRampToValueAtTime(0.06 * vols.nature, ac.currentTime + 0.02);
+          g.gain.linearRampToValueAtTime(0, ac.currentTime + 0.15);
+          osc.connect(g); g.connect(out);
+          osc.start(); osc.stop(ac.currentTime + 0.15);
+        }, i * 140);
+      }
+      nextChirp();
+    }, delay * 1000);
+  }
+  nextChirp();
+}
+
+function buildFire(ac, out) {
+  // Fire: brown noise + crackle (random pops) + warm low-pass
+  const buf = createBrownNoiseBuffer(ac, 5);
+  const src = ac.createBufferSource();
+  src.buffer = buf; src.loop = true;
+
+  const lp = ac.createBiquadFilter();
+  lp.type = 'lowpass'; lp.frequency.value = 800; lp.Q.value = 2;
+
+  const hp = ac.createBiquadFilter();
+  hp.type = 'highpass'; hp.frequency.value = 60;
+
+  // Flickering LFO
+  const lfo = ac.createOscillator();
+  lfo.type = 'sawtooth'; lfo.frequency.value = 4.5;
+  const lfoGain = ac.createGain(); lfoGain.gain.value = 0.25;
+  const baseGain = ac.createGain(); baseGain.gain.value = 0.65;
+  lfo.connect(lfoGain); lfoGain.connect(baseGain.gain);
+
+  src.connect(hp); hp.connect(lp); lp.connect(baseGain); baseGain.connect(out);
+  lfo.start(); src.start();
+  nodes.natureSrc = src; nodes.natureLfo = lfo;
+  nodes.natureLp = lp; nodes.natureHp = hp;
+  nodes.natureBaseGain = baseGain;
+
+  scheduleCrackles(ac, out);
+}
+
+function scheduleCrackles(ac, out) {
+  function nextCrackle() {
+    if (!isPlaying) return;
+    const delay = 0.3 + Math.random() * 1.8;
+    nodes.crackleTimeout = setTimeout(() => {
+      if (!isPlaying) return;
+      // Short white noise burst
+      const len = Math.floor(ac.sampleRate * 0.03);
+      const buf = ac.createBuffer(1, len, ac.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      const src2 = ac.createBufferSource(); src2.buffer = buf;
+      const bp = ac.createBiquadFilter(); bp.type = 'bandpass';
+      bp.frequency.value = 1000 + Math.random() * 2000; bp.Q.value = 5;
+      const g = ac.createGain();
+      g.gain.setValueAtTime(0.08 * vols.nature, ac.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + 0.03);
+      src2.connect(bp); bp.connect(g); g.connect(out);
+      src2.start();
+      nextCrackle();
+    }, delay * 1000);
+  }
+  nextCrackle();
+}
+
+function buildWind(ac, out) {
+  // Wind: pink noise + very slow sweep of bandpass center frequency
+  const buf = createNoiseBuffer(ac, 8);
+  const src = ac.createBufferSource();
+  src.buffer = buf; src.loop = true;
+
+  const bp = ac.createBiquadFilter();
+  bp.type = 'bandpass'; bp.frequency.value = 400; bp.Q.value = 0.6;
+
+  const lp = ac.createBiquadFilter();
+  lp.type = 'lowpass'; lp.frequency.value = 1200;
+
+  const baseGain = ac.createGain(); baseGain.gain.value = 0.5;
+
+  // Howl LFO — slow sweep of filter frequency
+  function sweepFilter() {
+    if (!isPlaying) return;
+    const target = 200 + Math.random() * 800;
+    const time = 2 + Math.random() * 4;
+    bp.frequency.linearRampToValueAtTime(target, ac.currentTime + time);
+    nodes.windTimer = setTimeout(sweepFilter, time * 1000);
+  }
+  sweepFilter();
+
+  // Gust amplitude LFO
+  const lfo = ac.createOscillator();
+  lfo.type = 'sine'; lfo.frequency.value = 0.05 + Math.random() * 0.1;
+  const lfoGain = ac.createGain(); lfoGain.gain.value = 0.3;
+  const lfo2 = ac.createOscillator();
+  lfo2.type = 'sine'; lfo2.frequency.value = 0.13;
+  const lfoGain2 = ac.createGain(); lfoGain2.gain.value = 0.2;
+  lfo.connect(lfoGain); lfoGain.connect(baseGain.gain);
+  lfo2.connect(lfoGain2); lfoGain2.connect(baseGain.gain);
+
+  src.connect(bp); bp.connect(lp); lp.connect(baseGain); baseGain.connect(out);
+  lfo.start(); lfo2.start(); src.start();
+  nodes.natureSrc = src; nodes.natureLfo = lfo; nodes.natureLfo2 = lfo2;
+  nodes.natureBp = bp; nodes.natureLp = lp;
+  nodes.natureBaseGain = baseGain;
+}
+
+function stopNature() {
+  clearTimeout(nodes.birdTimeout);
+  clearTimeout(nodes.crackleTimeout);
+  clearTimeout(nodes.windTimer);
+  try { nodes.natureSrc && nodes.natureSrc.stop(); } catch(e){}
+  try { nodes.natureLfo && nodes.natureLfo.stop(); } catch(e){}
+  try { nodes.natureLfo2 && nodes.natureLfo2.stop(); } catch(e){}
+  ['natureSrc','natureLfo','natureLfo2','natureGain','natureBaseGain',
+   'natureBp','natureLp','natureHp','natureLp2','natureLfoGain'].forEach(k => nodes[k] = null);
+}
+
+// ── Melody Engine ────────────────────────────────
+const SCALES = {
+  bowl:  [174, 285, 396, 417, 528, 639, 741, 852],
+  piano: [261.6, 293.7, 329.6, 349.2, 392.0, 440.0, 493.9, 523.3],
+  drone: [110, 165, 220, 330],
+  harp:  [220, 246.9, 261.6, 293.7, 329.6, 369.99, 415.3, 440],
+  flute: [392, 440, 494, 523, 587, 659, 698, 784]
+};
+
+function startMelody() {
+  const ac = getCtx();
+  const gainNode = ac.createGain();
+  gainNode.gain.value = vols.melody;
+  gainNode.connect(ac.destination);
+  nodes.melodyGain = gainNode;
+
+  const reverb = createReverb(ac);
+  reverb.connect(gainNode);
+
+  scheduleMelody(ac, reverb);
+}
+
+function createReverb(ac) {
+  const len = ac.sampleRate * 2.5;
+  const buf = ac.createBuffer(2, len, ac.sampleRate);
+  for (let c = 0; c < 2; c++) {
+    const d = buf.getChannelData(c);
+    for (let i = 0; i < len; i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/len, 2);
+  }
+  const conv = ac.createConvolver(); conv.buffer = buf;
+  return conv;
+}
+
+function scheduleMelody(ac, out) {
+  if (!isPlaying || selectedMelody === 'none') return;
+  const scale = SCALES[selectedMelody] || SCALES.bowl;
+
+  const intervals = {
+    bowl: 2800, piano: 1800, drone: 4000, harp: 1200, flute: 1400
+  };
+  const interval = intervals[selectedMelody] || 2000;
+
+  function playNote() {
+    if (!isPlaying || selectedMelody === 'none') return;
+    const freq = scale[Math.floor(Math.random() * scale.length)];
+    const duration = 0.8 + Math.random() * 1.5;
+
+    if (selectedMelody === 'drone') {
+      // Drone: long sustained tones
+      const osc = ac.createOscillator();
+      osc.type = 'sawtooth';
+      osc.frequency.value = freq;
+      const filt = ac.createBiquadFilter();
+      filt.type = 'lowpass'; filt.frequency.value = 600;
+      const g = ac.createGain();
+      g.gain.setValueAtTime(0, ac.currentTime);
+      g.gain.linearRampToValueAtTime(0.3, ac.currentTime + 1.5);
+      g.gain.linearRampToValueAtTime(0.25, ac.currentTime + 3);
+      g.gain.linearRampToValueAtTime(0, ac.currentTime + 5);
+      osc.connect(filt); filt.connect(g); g.connect(out);
+      osc.start(); osc.stop(ac.currentTime + 5);
+    } else {
+      const osc = ac.createOscillator();
+      osc.type = selectedMelody === 'flute' ? 'sine' : 'sine';
+      osc.frequency.value = freq;
+      const g = ac.createGain();
+      const atk = selectedMelody === 'piano' ? 0.01 : 0.15;
+      const rel = selectedMelody === 'piano' ? duration * 0.6 : duration * 0.3;
+      g.gain.setValueAtTime(0, ac.currentTime);
+      g.gain.linearRampToValueAtTime(0.4, ac.currentTime + atk);
+      g.gain.linearRampToValueAtTime(0.3, ac.currentTime + atk + 0.1);
+      g.gain.linearRampToValueAtTime(0, ac.currentTime + duration);
+      osc.connect(g); g.connect(out);
+      osc.start(); osc.stop(ac.currentTime + duration + 0.1);
+    }
+
+    const jitter = interval * (0.8 + Math.random() * 0.4);
+    nodes.melodyTimer = setTimeout(playNote, jitter);
+  }
+  playNote();
+}
+
+function stopMelody() {
+  clearTimeout(nodes.melodyTimer);
+  nodes.melodyGain = null;
+}
+
+// ── User Music ───────────────────────────────────
+let userSource = null;
+function startUserMusic() {
+  if (!userBuffer) return;
+  const ac = getCtx();
+  const gainNode = ac.createGain();
+  gainNode.gain.value = vols.music;
+  gainNode.connect(ac.destination);
+  nodes.musicGain = gainNode;
+  const src = ac.createBufferSource();
+  src.buffer = userBuffer; src.loop = true;
+  src.connect(gainNode);
+  src.start();
+  userSource = src;
+  nodes.musicSrc = src;
+}
+
+function stopUserMusic() {
+  try { userSource && userSource.stop(); } catch(e){}
+  userSource = null; nodes.musicSrc = null; nodes.musicGain = null;
+}
+
+function loadUserMusic(input) {
+  const file = input.files[0]; if (!file) return;
+  const ac = getCtx();
+  const reader = new FileReader();
+  reader.onload = e => {
+    ac.decodeAudioData(e.target.result, buf => {
+      userBuffer = buf;
+      const area = document.getElementById('uploadArea');
+      area.classList.add('has-file');
+      area.innerHTML = `<div style="font-size:2rem">✅</div><div>${file.name}</div>`;
+      if (isPlaying) startUserMusic();
+    });
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ── Timer ─────────────────────────────────────────
+function startTimer() {
+  startTime = Date.now();
+  const totalMs = selectedDuration * 60 * 1000;
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    const elapsed = Date.now() - startTime;
+    const pct = Math.min(100, (elapsed / totalMs) * 100);
+    document.getElementById('timerFill').style.width = pct + '%';
+    const rem = Math.max(0, totalMs - elapsed);
+    const m = Math.floor(rem / 60000);
+    const s = Math.floor((rem % 60000) / 1000);
+    document.getElementById('timerLabel').textContent =
+      `${m}:${s.toString().padStart(2,'0')} ${T[lang].stop || 'remaining'}`;
+    if (elapsed >= totalMs) { togglePlay(); }
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  document.getElementById('timerFill').style.width = '0%';
+  document.getElementById('timerLabel').textContent = '—';
+}
+
+// ═══════════════════════════════════════════════
+//  MAIN PLAY/STOP
+// ═══════════════════════════════════════════════
+function togglePlay() {
+  if (isPlaying) {
+    stopAll();
+  } else {
+    startAll();
+  }
+}
+
+function startAll() {
+  isPlaying = true;
+  getCtx();
+  startBinaural();
+  if (selectedSound !== 'none') startNature();
+  if (selectedMelody !== 'none') startMelody();
+  startUserMusic();
+  startTimer();
+  const btn = document.getElementById('playBtn');
+  btn.innerHTML = `⏹ <span data-t="stop">${T[lang].stop}</span>`;
+  updateStatusBadge();
+}
+
+function stopAll() {
+  isPlaying = false;
+  stopBinaural();
+  stopNature();
+  stopMelody();
+  stopUserMusic();
+  stopTimer();
+  const btn = document.getElementById('playBtn');
+  btn.innerHTML = `▶ <span data-t="play">${T[lang].play}</span>`;
+  updateStatusBadge();
+}
+
+// ═══════════════════════════════════════════════
+//  DOWNLOAD WAV (OfflineAudioContext)
+// ═══════════════════════════════════════════════
+async function downloadMix() {
+  const prog = document.getElementById('dlProgress');
+  prog.style.display = 'block';
+
+  const durationSec = Math.min(selectedDuration * 60, 600);
+  const sampleRate = 44100;
+  const offCtx = new OfflineAudioContext(2, sampleRate * durationSec, sampleRate);
+
+  // Binaural
+  const base = 200;
+  const merger = offCtx.createChannelMerger(2);
+  const bGain = offCtx.createGain(); bGain.gain.value = vols.binaural;
+  merger.connect(bGain); bGain.connect(offCtx.destination);
+
+  const oscL = offCtx.createOscillator(); oscL.type='sine'; oscL.frequency.value = base;
+  const oscR = offCtx.createOscillator(); oscR.type='sine'; oscR.frequency.value = base + selectedHz;
+  const gL = offCtx.createGain(); gL.gain.value = 1;
+  const gR = offCtx.createGain(); gR.gain.value = 1;
+  oscL.connect(gL); gL.connect(merger,0,0);
+  oscR.connect(gR); gR.connect(merger,0,1);
+  oscL.start(); oscR.start();
+
+  // Nature — offline pink noise
+  if (selectedSound !== 'none') {
+    const nGain = offCtx.createGain(); nGain.gain.value = vols.nature;
+    nGain.connect(offCtx.destination);
+    const noiseBuf = createNoiseBuffer(offCtx, Math.min(durationSec, 30));
+    const nSrc = offCtx.createBufferSource();
+    nSrc.buffer = noiseBuf; nSrc.loop = true;
+    let nFilter;
+    if (selectedSound === 'rain') {
+      nFilter = offCtx.createBiquadFilter(); nFilter.type='highpass'; nFilter.frequency.value=1200;
+    } else if (selectedSound === 'ocean') {
+      nFilter = offCtx.createBiquadFilter(); nFilter.type='lowpass'; nFilter.frequency.value=500;
+    } else {
+      nFilter = offCtx.createBiquadFilter(); nFilter.type='bandpass'; nFilter.frequency.value=600; nFilter.Q.value=0.5;
+    }
+    nSrc.connect(nFilter); nFilter.connect(nGain);
+    nSrc.start();
+  }
+
+  // User music offline
+  if (userBuffer) {
+    const mGain = offCtx.createGain(); mGain.gain.value = vols.music;
+    mGain.connect(offCtx.destination);
+    const mSrc = offCtx.createBufferSource();
+    mSrc.buffer = userBuffer; mSrc.loop = true;
+    mSrc.connect(mGain); mSrc.start();
+  }
+
+  try {
+    const rendered = await offCtx.startRendering();
+    const wav = audioBufferToWav(rendered);
+    const blob = new Blob([wav], {type:'audio/wav'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const sName = selectedSound; const mName = selectedMelody;
+    a.href = url; a.download = `binaural_${selectedHz}hz_${sName}_${mName}.wav`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch(e) {
+    alert('Rendering failed: ' + e.message);
+  }
+  prog.style.display = 'none';
+}
+
+function audioBufferToWav(buffer) {
+  const numCh = buffer.numberOfChannels;
+  const numSamples = buffer.length;
+  const sampleRate = buffer.sampleRate;
+  const bytesPerSample = 2;
+  const blockAlign = numCh * bytesPerSample;
+  const dataSize = numSamples * blockAlign;
+  const arrayBuf = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(arrayBuf);
+
+  function writeString(off, str) { for(let i=0;i<str.length;i++) view.setUint8(off+i, str.charCodeAt(i)); }
+  writeString(0,'RIFF'); view.setUint32(4, 36+dataSize, true);
+  writeString(8,'WAVE'); writeString(12,'fmt ');
+  view.setUint32(16, 16, true); view.setUint16(20, 1, true);
+  view.setUint16(22, numCh, true); view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate*blockAlign, true); view.setUint16(32, blockAlign, true);
+  view.setUint16(34, 16, true); writeString(36,'data');
+  view.setUint32(40, dataSize, true);
+
+  const channels = [];
+  for(let c=0;c<numCh;c++) channels.push(buffer.getChannelData(c));
+  let off = 44;
+  for(let i=0;i<numSamples;i++) {
+    for(let c=0;c<numCh;c++) {
+      const s = Math.max(-1, Math.min(1, channels[c][i]));
+      view.setInt16(off, s < 0 ? s*0x8000 : s*0x7FFF, true); off+=2;
+    }
+  }
+  return arrayBuf;
+}
+
+// ═══════════════════════════════════════════════
+//  FAVORITES
+// ═══════════════════════════════════════════════
+function saveFavorite() {
+  const key = `${selectedHz}hz-${selectedSound}-${selectedMelody}-${selectedDuration}min`;
+  const favs = JSON.parse(localStorage.getItem('bsFavs') || '[]');
+  if (!favs.includes(key)) { favs.push(key); localStorage.setItem('bsFavs', JSON.stringify(favs)); }
+  renderFavorites();
+}
+
+function renderFavorites() {
+  const favs = JSON.parse(localStorage.getItem('bsFavs') || '[]');
+  const list = document.getElementById('favList');
+  list.innerHTML = favs.map(f => `
+    <span class="fav-tag" onclick="loadFav('${f}')">
+      ${f} <span class="fav-del" onclick="delFav(event,'${f}')">✕</span>
+    </span>`).join('');
+}
+
+function loadFav(key) {
+  const parts = key.split('-');
+  const hz = parseInt(parts[0]);
+  const sound = parts[1];
+  const melody = parts[2];
+  const dur = parseInt(parts[3]);
+
+  document.querySelectorAll('.wave-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.hz) === hz);
+  });
+  document.querySelectorAll('.sound-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.sound === sound);
+  });
+  document.querySelectorAll('.melody-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.mel === melody);
+  });
+  document.querySelectorAll('.dur-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.min) === dur);
+  });
+  selectedHz = hz; selectedSound = sound; selectedMelody = melody; selectedDuration = dur;
+  updateWaveInfo();
+}
+
+function delFav(e, key) {
+  e.stopPropagation();
+  const favs = JSON.parse(localStorage.getItem('bsFavs') || '[]').filter(f => f !== key);
+  localStorage.setItem('bsFavs', JSON.stringify(favs));
+  renderFavorites();
+}
+
+// ── Drag & Drop ──────────────────────────────────
+const uploadArea = document.getElementById('uploadArea');
+uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.style.borderColor='var(--accent)'; });
+uploadArea.addEventListener('dragleave', () => { uploadArea.style.borderColor=''; });
+uploadArea.addEventListener('drop', e => {
+  e.preventDefault(); uploadArea.style.borderColor='';
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('audio/')) {
+    document.getElementById('musicFile').files = e.dataTransfer.files;
+    loadUserMusic(document.getElementById('musicFile'));
+  }
+});
+
+// ── Init ─────────────────────────────────────────
+updateWaveInfo();
+updateStatusBadge();
+renderFavorites();
+</script>
+</body>
+</html>
