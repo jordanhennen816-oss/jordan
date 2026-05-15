@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Бинаурал 10 — 10 Честоти</title>
+<style>
+:root {
+  --bg: #07080f;
+  --surface: #0f1020;
+  --card: #141528;
+  --border: #1e2040;
+  --text: #e0e0f0;
+  --muted: #6060a0;
+  --accent: #7c6cff;
+  --green: #3ef5a0;
+  --pink: #ff6bba;
+  --cyan: #3ef0f5;
+  --orange: #ffa040;
+  --yellow: #f5e03e;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  min-height: 100vh;
+  padding: 18px 14px 40px;
+}
+/* header */
+header { text-align: center; margin-bottom: 24px; }
+header h1 {
+  font-size: 2rem; font-weight: 800;
+  background: linear-gradient(120deg,#7c6cff,#3ef0f5,#3ef5a0);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  line-height: 1.2;
+}
+header p { color: var(--muted); font-size: 0.88rem; margin-top: 4px; }
+
+/* canvas visualizer */
+#canvas { display: block; width: 100%; height: 80px; border-radius: 12px;
+  background: var(--surface); margin-bottom: 20px; border: 1px solid var(--border); }
+
+/* frequency grid */
+.freq-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.freq-card {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  padding: 10px 6px 8px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.freq-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  opacity: 0;
+  transition: opacity 0.3s;
+  border-radius: 12px;
+}
+.freq-card.active { border-color: var(--col); }
+.freq-card.active::before { opacity: 0.12; background: var(--col); }
+.freq-card:hover { transform: translateY(-2px); border-color: var(--col); }
+.freq-card .hz {
+  font-size: 1.3rem; font-weight: 800;
+  color: var(--col);
+  display: block; line-height: 1;
+}
+.freq-card .wave-name {
+  font-size: 0.72rem; color: var(--muted);
+  margin-top: 2px; display: block;
+}
+.freq-card .effect {
+  font-size: 0.65rem; color: var(--text);
+  margin-top: 4px; line-height: 1.3;
+}
+.freq-card .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--col); margin: 6px auto 0;
+  opacity: 0; transition: opacity 0.3s;
+}
+.freq-card.active .dot { opacity: 1; animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.6);opacity:0.5} }
+
+/* info strip */
+.info-strip {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px 16px; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+}
+.info-strip .badge {
+  background: rgba(124,108,255,0.15); border: 1px solid rgba(124,108,255,0.4);
+  border-radius: 20px; padding: 4px 12px; font-size: 0.8rem; color: var(--accent);
+  white-space: nowrap;
+}
+.info-strip .desc { font-size: 0.85rem; color: var(--text); flex: 1; }
+
+/* bottom grid */
+.bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+.panel { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
+.panel h3 { font-size: 0.85rem; color: var(--cyan); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+
+/* nature sounds */
+.nature-btns { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; }
+.nat-btn {
+  background: var(--surface); border: 1px solid var(--border); color: var(--text);
+  padding: 9px 4px; border-radius: 10px; cursor: pointer; text-align: center;
+  font-size: 0.78rem; transition: all 0.2s;
+}
+.nat-btn .ico { display: block; font-size: 1.3rem; margin-bottom: 2px; }
+.nat-btn.active { border-color: var(--green); background: rgba(62,245,160,0.1); }
+
+/* sliders */
+.sl { margin-bottom: 10px; }
+.sl label { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--muted); margin-bottom: 5px; }
+.sl label span { color: var(--text); }
+input[type=range] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+
+/* duration */
+.dur-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.dur-btn {
+  background: var(--surface); border: 1px solid var(--border); color: var(--muted);
+  padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s;
+}
+.dur-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* controls */
+.controls { display: flex; gap: 10px; margin-top: 14px; }
+.btn-play {
+  flex: 1; padding: 15px; border: none; border-radius: 12px; cursor: pointer;
+  font-size: 1.05rem; font-weight: 700; color: #fff;
+  background: linear-gradient(135deg, var(--accent), #a06cff);
+  transition: opacity 0.2s;
+}
+.btn-play:hover { opacity: 0.85; }
+.btn-dl {
+  padding: 15px 18px; border: none; border-radius: 12px; cursor: pointer;
+  font-size: 0.9rem; font-weight: 600; color: #fff;
+  background: linear-gradient(135deg, #1a7a50, var(--green));
+  transition: opacity 0.2s;
+}
+.btn-dl:hover { opacity: 0.85; }
+
+/* timer */
+.timer-wrap { margin-top: 12px; }
+.timer-bar { background: var(--surface); border-radius: 6px; height: 5px; overflow: hidden; }
+.timer-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--cyan)); width: 0; transition: width 1s linear; }
+.timer-label { text-align: center; font-size: 0.78rem; color: var(--muted); margin-top: 5px; }
+
+/* session log */
+.log { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
+.log h3 { font-size: 0.85rem; color: var(--orange); margin-bottom: 10px; }
+.log-list { max-height: 90px; overflow-y: auto; }
+.log-item { font-size: 0.75rem; color: var(--muted); padding: 3px 0; border-bottom: 1px solid var(--border); display: flex; gap: 8px; }
+.log-item .lt { color: var(--text); min-width: 45px; }
+
+/* lang bar */
+.lang-bar { display: flex; justify-content: center; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+.lang-btn { background: var(--card); border: 1px solid var(--border); color: var(--muted);
+  padding: 4px 11px; border-radius: 16px; cursor: pointer; font-size: 0.78rem; transition: all 0.2s; }
+.lang-btn.active, .lang-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* render overlay */
+.render-msg { display: none; text-align: center; font-size: 0.82rem; color: var(--green); margin-top: 8px; }
+
+@media (max-width: 600px) {
+  .freq-grid { grid-template-columns: repeat(5,1fr); gap: 5px; }
+  .freq-card .hz { font-size: 1rem; }
+  .freq-card .effect { display: none; }
+  .bottom { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎧 Бинаурал 10</h1>
+  <p>10 терапевтични честоти · реални природни фонове · WAV download</p>
+</header>
+
+<div class="lang-bar">
+  <button class="lang-btn active" onclick="setLang('bg')">🇧🇬 BG</button>
+  <button class="lang-btn" onclick="setLang('en')">🇬🇧 EN</button>
+  <button class="lang-btn" onclick="setLang('de')">🇩🇪 DE</button>
+  <button class="lang-btn" onclick="setLang('es')">🇪🇸 ES</button>
+  <button class="lang-btn" onclick="setLang('nl')">🇳🇱 NL</button>
+</div>
+
+<canvas id="canvas"></canvas>
+
+<div class="freq-grid" id="freqGrid"></div>
+
+<div class="info-strip" id="infoStrip">
+  <span class="badge" id="infoBadge">—</span>
+  <span class="desc" id="infoDesc">Избери честота за да започнеш</span>
+</div>
+
+<div class="bottom">
+  <div class="panel">
+    <h3>🌿 <span data-t="nature">Природни фонове</span></h3>
+    <div class="nature-btns">
+      <button class="nat-btn active" data-s="rain" onclick="pickSound(this,'rain')"><span class="ico">🌧️</span><span data-t="s_rain">Дъжд</span></button>
+      <button class="nat-btn" data-s="ocean" onclick="pickSound(this,'ocean')"><span class="ico">🌊</span><span data-t="s_ocean">Океан</span></button>
+      <button class="nat-btn" data-s="forest" onclick="pickSound(this,'forest')"><span class="ico">🌲</span><span data-t="s_forest">Гора</span></button>
+      <button class="nat-btn" data-s="fire" onclick="pickSound(this,'fire')"><span class="ico">🔥</span><span data-t="s_fire">Огън</span></button>
+      <button class="nat-btn" data-s="wind" onclick="pickSound(this,'wind')"><span class="ico">💨</span><span data-t="s_wind">Вятър</span></button>
+      <button class="nat-btn" data-s="none" onclick="pickSound(this,'none')"><span class="ico">🔇</span><span data-t="s_none">Без</span></button>
+    </div>
+    <div class="sl" style="margin-top:12px">
+      <label><span data-t="vol_nature">Природа</span><span id="vNVal">60%</span></label>
+      <input type="range" min="0" max="100" value="60" oninput="setVol('nature',this.value)">
+    </div>
+    <div class="sl">
+      <label><span data-t="vol_bin">Бинаурал</span><span id="vBVal">75%</span></label>
+      <input type="range" min="0" max="100" value="75" oninput="setVol('bin',this.value)">
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>⏱️ <span data-t="session">Сесия</span></h3>
+    <div class="dur-row" id="durRow">
+      <button class="dur-btn" data-m="5" onclick="pickDur(this,5)">5 мин</button>
+      <button class="dur-btn active" data-m="15" onclick="pickDur(this,15)">15 мин</button>
+      <button class="dur-btn" data-m="30" onclick="pickDur(this,30)">30 мин</button>
+      <button class="dur-btn" data-m="45" onclick="pickDur(this,45)">45 мин</button>
+      <button class="dur-btn" data-m="60" onclick="pickDur(this,60)">60 мин</button>
+    </div>
+    <div class="controls">
+      <button class="btn-play" id="playBtn" onclick="togglePlay()">▶ <span data-t="play">Старт</span></button>
+      <button class="btn-dl" onclick="doDownload()">⬇️ WAV</button>
+    </div>
+    <div class="timer-wrap">
+      <div class="timer-bar"><div class="timer-fill" id="tFill"></div></div>
+      <div class="timer-label" id="tLabel">—</div>
+    </div>
+    <div class="render-msg" id="renderMsg">⏳ <span data-t="rendering">Рендерира се...</span></div>
+  </div>
+</div>
+
+<div class="log">
+  <h3>📋 <span data-t="log">Дневник на сесиите</span></h3>
+  <div class="log-list" id="logList"><div style="font-size:0.75rem;color:var(--muted)" data-t="no_sessions">Няма сесии все още</div></div>
+</div>
+
+<script>
+// ═══════════════════════════════════
+//  10 FREQUENCIES DATA
+// ═══════════════════════════════════
+const FREQS = [
+  { hz:0.5,  name:'Epsilon', col:'#c03ef5',
+    bg:{bg:'Epsilon 0.5 Hz — Дълбоко изцеление',en:'Epsilon 0.5 Hz — Deep healing',de:'Epsilon 0.5 Hz — Tiefe Heilung',es:'Epsilon 0.5 Hz — Curación profunda',nl:'Epsilon 0.5 Hz — Diepe genezing'},
+    eff:{bg:'Дълбоко\nизцеление',en:'Deep\nhealing',de:'Tiefe\nHeilung',es:'Curación\nprofunda',nl:'Diepe\ngenezing'} },
+  { hz:1,    name:'Delta–',  col:'#7c6cff',
+    bg:{bg:'Delta 1 Hz — Регенерация на клетките',en:'Delta 1 Hz — Cell regeneration',de:'Delta 1 Hz — Zellregeneration',es:'Delta 1 Hz — Regeneración celular',nl:'Delta 1 Hz — Celregeneratie'},
+    eff:{bg:'Клетъчна\nрегенерация',en:'Cell\nregeneration',de:'Zell-\nregeneration',es:'Regeneración\ncelular',nl:'Cel-\nregeneratie'} },
+  { hz:2,    name:'Delta',   col:'#6090ff',
+    bg:{bg:'Delta 2 Hz — Дълбок сън и регенерация',en:'Delta 2 Hz — Deep sleep & regeneration',de:'Delta 2 Hz — Tiefschlaf & Regeneration',es:'Delta 2 Hz — Sueño profundo',nl:'Delta 2 Hz — Diepe slaap'},
+    eff:{bg:'Дълбок\nсън',en:'Deep\nsleep',de:'Tiefer\nSchlaf',es:'Sueño\nprofundo',nl:'Diepe\nslaap'} },
+  { hz:4,    name:'Theta–',  col:'#3ef0f5',
+    bg:{bg:'Theta 4 Hz — Дълбока медитация и сънища',en:'Theta 4 Hz — Deep meditation & dreaming',de:'Theta 4 Hz — Tiefe Meditation & Träumen',es:'Theta 4 Hz — Meditación profunda',nl:'Theta 4 Hz — Diepe meditatie'},
+    eff:{bg:'Дълбока\nмедитация',en:'Deep\nmeditation',de:'Tiefe\nMeditation',es:'Meditación\nprofunda',nl:'Diepe\nmeditatie'} },
+  { hz:6,    name:'Theta+',  col:'#3ef5a0',
+    bg:{bg:'Theta 6 Hz — Творчество и интуиция',en:'Theta 6 Hz — Creativity & intuition',de:'Theta 6 Hz — Kreativität & Intuition',es:'Theta 6 Hz — Creatividad e intuición',nl:'Theta 6 Hz — Creativiteit & intuïtie'},
+    eff:{bg:'Творчество\nинтуиция',en:'Creativity\nintuition',de:'Kreativität\nIntuition',es:'Creatividad\nintuición',nl:'Creativiteit\nintuïtie'} },
+  { hz:8,    name:'Alpha–',  col:'#a0f53e',
+    bg:{bg:'Alpha 8 Hz — Релаксация и спокойствие',en:'Alpha 8 Hz — Relaxation & calm',de:'Alpha 8 Hz — Entspannung & Ruhe',es:'Alpha 8 Hz — Relajación y calma',nl:'Alpha 8 Hz — Ontspanning & rust'},
+    eff:{bg:'Релаксация\nспокойствие',en:'Relaxation\ncalm',de:'Entspannung\nRuhe',es:'Relajación\ncalma',nl:'Ontspanning\nrust'} },
+  { hz:10,   name:'Alpha',   col:'#f5e03e',
+    bg:{bg:'Alpha 10 Hz — Лек транс и медитация',en:'Alpha 10 Hz — Light trance & meditation',de:'Alpha 10 Hz — Leichter Trance & Meditation',es:'Alpha 10 Hz — Trance ligero',nl:'Alpha 10 Hz — Lichte trance'},
+    eff:{bg:'Лек транс\nмедитация',en:'Light\ntrance',de:'Leichter\nTrance',es:'Trance\nligero',nl:'Lichte\ntrance'} },
+  { hz:14,   name:'Beta–',   col:'#ffa040',
+    bg:{bg:'Beta 14 Hz — Фокус и концентрация',en:'Beta 14 Hz — Focus & concentration',de:'Beta 14 Hz — Fokus & Konzentration',es:'Beta 14 Hz — Enfoque y concentración',nl:'Beta 14 Hz — Focus & concentratie'},
+    eff:{bg:'Фокус\nконцентрация',en:'Focus\nconcentration',de:'Fokus\nKonzentration',es:'Enfoque\nconcentración',nl:'Focus\nconcentratie'} },
+  { hz:20,   name:'Beta',    col:'#ff6bba',
+    bg:{bg:'Beta 20 Hz — Активно мислене и решаване',en:'Beta 20 Hz — Active thinking & problem solving',de:'Beta 20 Hz — Aktives Denken & Problemlösung',es:'Beta 20 Hz — Pensamiento activo',nl:'Beta 20 Hz — Actief denken'},
+    eff:{bg:'Активно\nмислене',en:'Active\nthinking',de:'Aktives\nDenken',es:'Pensamiento\nactivo',nl:'Actief\ndenken'} },
+  { hz:40,   name:'Gamma',   col:'#ff4040',
+    bg:{bg:'Gamma 40 Hz — Пиков перформанс и осъзнатост',en:'Gamma 40 Hz — Peak performance & awareness',de:'Gamma 40 Hz — Spitzenleistung & Bewusstsein',es:'Gamma 40 Hz — Rendimiento máximo',nl:'Gamma 40 Hz — Topprestatie'},
+    eff:{bg:'Пик\nперформанс',en:'Peak\nperformance',de:'Spitzen-\nleistung',es:'Rendimiento\nmáximo',nl:'Top-\nprestatie'} }
+];
+
+const T = {
+  bg:{ nature:'Природни фонове',s_rain:'Дъжд',s_ocean:'Океан',s_forest:'Гора',s_fire:'Огън',s_wind:'Вятър',s_none:'Без',
+       vol_nature:'Природа',vol_bin:'Бинаурал',session:'Сесия',play:'Старт',stop:'Стоп',
+       rendering:'Рендерира се...',log:'Дневник на сесиите',no_sessions:'Няма сесии все още' },
+  en:{ nature:'Nature sounds',s_rain:'Rain',s_ocean:'Ocean',s_forest:'Forest',s_fire:'Fire',s_wind:'Wind',s_none:'None',
+       vol_nature:'Nature',vol_bin:'Binaural',session:'Session',play:'Start',stop:'Stop',
+       rendering:'Rendering...',log:'Session log',no_sessions:'No sessions yet' },
+  de:{ nature:'Naturgeräusche',s_rain:'Regen',s_ocean:'Ozean',s_forest:'Wald',s_fire:'Feuer',s_wind:'Wind',s_none:'Keine',
+       vol_nature:'Natur',vol_bin:'Binaural',session:'Sitzung',play:'Start',stop:'Stop',
+       rendering:'Wird gerendert...',log:'Sitzungsprotokoll',no_sessions:'Noch keine Sitzungen' },
+  es:{ nature:'Sonidos naturales',s_rain:'Lluvia',s_ocean:'Océano',s_forest:'Bosque',s_fire:'Fuego',s_wind:'Viento',s_none:'Ninguno',
+       vol_nature:'Naturaleza',vol_bin:'Binaural',session:'Sesión',play:'Iniciar',stop:'Parar',
+       rendering:'Renderizando...',log:'Registro de sesiones',no_sessions:'Sin sesiones aún' },
+  nl:{ nature:'Natuurgeluiden',s_rain:'Regen',s_ocean:'Oceaan',s_forest:'Bos',s_fire:'Vuur',s_wind:'Wind',s_none:'Geen',
+       vol_nature:'Natuur',vol_bin:'Binaural',session:'Sessie',play:'Starten',stop:'Stoppen',
+       rendering:'Renderen...',log:'Sessielogboek',no_sessions:'Nog geen sessies' }
+};
+
+let lang = 'bg';
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`.lang-btn[onclick="setLang('${l}')"]`).classList.add('active');
+  document.querySelectorAll('[data-t]').forEach(el=>{
+    const k=el.getAttribute('data-t'); if(T[l][k]) el.textContent=T[l][k];
+  });
+  buildGrid();
+  updateInfo();
+}
+
+// ═══════════════════════════════════
+//  GRID BUILD
+// ═══════════════════════════════════
+let selIdx = 2; // default: 2 Hz
+
+function buildGrid() {
+  const g = document.getElementById('freqGrid');
+  g.innerHTML = '';
+  FREQS.forEach((f,i) => {
+    const div = document.createElement('div');
+    div.className = 'freq-card' + (i===selIdx?' active':'');
+    div.style.setProperty('--col', f.col);
+    div.innerHTML = `
+      <span class="hz">${f.hz < 1 ? f.hz : f.hz} Hz</span>
+      <span class="wave-name">${f.name}</span>
+      <span class="effect">${(f.eff[lang]||f.eff.bg).replace('\n','<br>')}</span>
+      <div class="dot"></div>`;
+    div.onclick = () => selectFreq(i);
+    g.appendChild(div);
+  });
+}
+
+function selectFreq(i) {
+  selIdx = i;
+  document.querySelectorAll('.freq-card').forEach((c,j)=>c.classList.toggle('active',j===i));
+  document.querySelectorAll('.freq-card').forEach((c,j)=>{
+    c.style.setProperty('--col', FREQS[j].col);
+  });
+  updateInfo();
+  if(isPlaying) restartBinaural();
+}
+
+function updateInfo() {
+  const f = FREQS[selIdx];
+  document.getElementById('infoBadge').textContent = `${f.name} ${f.hz} Hz`;
+  document.getElementById('infoBadge').style.color = f.col;
+  document.getElementById('infoBadge').style.borderColor = f.col + '66';
+  document.getElementById('infoBadge').style.background = f.col + '22';
+  document.getElementById('infoDesc').textContent = f.bg[lang] || f.bg.bg;
+}
+
+// ═══════════════════════════════════
+//  STATE
+// ═══════════════════════════════════
+let isPlaying = false;
+let selSound = 'rain';
+let selDur = 15;
+let vols = { bin: 0.75, nature: 0.60 };
+let timerInt = null, startTime = 0;
+let nodes = {};
+let ctx = null;
+let animId = null;
+let analyser = null;
+
+function getCtx() {
+  if (!ctx) ctx = new (window.AudioContext||window.webkitAudioContext)({sampleRate:44100});
+  if (ctx.state==='suspended') ctx.resume();
+  return ctx;
+}
+
+// ═══════════════════════════════════
+//  VISUALIZER
+// ═══════════════════════════════════
+const canvas = document.getElementById('canvas');
+const cctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+  canvas.width = canvas.offsetWidth * devicePixelRatio;
+  canvas.height = canvas.offsetHeight * devicePixelRatio;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+function drawIdle() {
+  const W = canvas.width, H = canvas.height;
+  cctx.clearRect(0,0,W,H);
+  cctx.fillStyle = '#0f1020';
+  cctx.fillRect(0,0,W,H);
+  const col = FREQS[selIdx].col;
+  cctx.strokeStyle = col + '40';
+  cctx.lineWidth = 1.5;
+  cctx.beginPath();
+  const t = Date.now()/1000;
+  for(let x=0;x<W;x++) {
+    const phase = (x/W)*Math.PI*8 + t*2;
+    const y = H/2 + Math.sin(phase)*8 + Math.sin(phase*0.5+1)*4;
+    x===0 ? cctx.moveTo(x,y) : cctx.lineTo(x,y);
+  }
+  cctx.stroke();
+}
+
+function drawActive() {
+  if (!analyser) { drawIdle(); return; }
+  const W = canvas.width, H = canvas.height;
+  const bufLen = analyser.frequencyBinCount;
+  const dataArr = new Uint8Array(bufLen);
+  analyser.getByteTimeDomainData(dataArr);
+
+  cctx.fillStyle = '#0f1020';
+  cctx.fillRect(0,0,W,H);
+
+  const col = FREQS[selIdx].col;
+  cctx.lineWidth = 2;
+  cctx.strokeStyle = col;
+  cctx.shadowBlur = 8; cctx.shadowColor = col;
+  cctx.beginPath();
+  const sliceW = W / bufLen;
+  let x = 0;
+  for(let i=0;i<bufLen;i++) {
+    const v = dataArr[i]/128.0;
+    const y = v * H/2;
+    i===0 ? cctx.moveTo(x,y) : cctx.lineTo(x,y);
+    x += sliceW;
+  }
+  cctx.lineTo(W, H/2);
+  cctx.stroke();
+  cctx.shadowBlur = 0;
+}
+
+function animate() {
+  isPlaying ? drawActive() : drawIdle();
+  animId = requestAnimationFrame(animate);
+}
+animate();
+
+// ═══════════════════════════════════
+//  BINAURAL ENGINE
+// ═══════════════════════════════════
+function startBinaural() {
+  const ac = getCtx();
+  const f = FREQS[selIdx];
+  const base = 200;
+
+  analyser = ac.createAnalyser();
+  analyser.fftSize = 2048;
+
+  const masterGain = ac.createGain();
+  masterGain.gain.value = vols.bin;
+  masterGain.connect(analyser);
+  analyser.connect(ac.destination);
+  nodes.binGain = masterGain;
+
+  const merger = ac.createChannelMerger(2);
+  merger.connect(masterGain);
+
+  const oscL = ac.createOscillator(); oscL.type='sine';
+  oscL.frequency.value = base;
+  const oscR = ac.createOscillator(); oscR.type='sine';
+  oscR.frequency.value = base + f.hz;
+
+  const gL = ac.createGain(); gL.gain.value = 1;
+  const gR = ac.createGain(); gR.gain.value = 1;
+  oscL.connect(gL); gL.connect(merger,0,0);
+  oscR.connect(gR); gR.connect(merger,0,1);
+  oscL.start(); oscR.start();
+  nodes.oscL=oscL; nodes.oscR=oscR; nodes.gL=gL; nodes.gR=gR; nodes.merger=merger;
+}
+
+function stopBinaural() {
+  ['oscL','oscR'].forEach(k=>{ try{ nodes[k]&&nodes[k].stop(); }catch(e){} });
+  analyser = null;
+  ['oscL','oscR','gL','gR','merger','binGain'].forEach(k=>nodes[k]=null);
+}
+
+function restartBinaural() { stopBinaural(); startBinaural(); }
+
+// ═══════════════════════════════════
+//  NOISE GENERATORS
+// ═══════════════════════════════════
+function pinkNoise(ac, sec) {
+  const len = ac.sampleRate*sec, buf=ac.createBuffer(1,len,ac.sampleRate), d=buf.getChannelData(0);
+  let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+  for(let i=0;i<len;i++){
+    const w=Math.random()*2-1;
+    b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
+    b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
+    b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5-w*0.0168980;
+    d[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.11; b6=w*0.115926;
+  }
+  return buf;
+}
+function brownNoise(ac, sec) {
+  const len=ac.sampleRate*sec, buf=ac.createBuffer(1,len,ac.sampleRate), d=buf.getChannelData(0);
+  let last=0;
+  for(let i=0;i<len;i++){ const w=Math.random()*2-1; last=(last+0.02*w)/1.02; d[i]=last*3.5; }
+  return buf;
+}
+
+// ═══════════════════════════════════
+//  NATURE SOUNDS
+// ═══════════════════════════════════
+function startNature() {
+  if(selSound==='none') return;
+  const ac=getCtx();
+  const g=ac.createGain(); g.gain.value=vols.nature; g.connect(ac.destination);
+  nodes.natGain=g;
+  ({ rain:buildRain, ocean:buildOcean, forest:buildForest, fire:buildFire, wind:buildWind }[selSound])(ac,g);
+}
+
+function buildRain(ac,out) {
+  const src=ac.createBufferSource(); src.buffer=pinkNoise(ac,4); src.loop=true;
+  const hp=ac.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=1100; hp.Q.value=0.5;
+  const bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=2800; bp.Q.value=0.9;
+  const lfo=ac.createOscillator(); lfo.type='sine'; lfo.frequency.value=12;
+  const lg=ac.createGain(); lg.gain.value=0.3;
+  const bg=ac.createGain(); bg.gain.value=0.7;
+  lfo.connect(lg); lg.connect(bg.gain);
+  src.connect(hp); hp.connect(bp); bp.connect(bg); bg.connect(out);
+  lfo.start(); src.start();
+  nodes.natSrc=src; nodes.natLfo=lfo;
+}
+function buildOcean(ac,out) {
+  const src=ac.createBufferSource(); src.buffer=brownNoise(ac,8); src.loop=true;
+  const lp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=550; lp.Q.value=1.2;
+  const lfo=ac.createOscillator(); lfo.type='sine'; lfo.frequency.value=0.11;
+  const lg=ac.createGain(); lg.gain.value=0.45;
+  const bg=ac.createGain(); bg.gain.value=0.55;
+  lfo.connect(lg); lg.connect(bg.gain);
+  src.connect(lp); lp.connect(bg); bg.connect(out);
+  lfo.start(); src.start();
+  nodes.natSrc=src; nodes.natLfo=lfo;
+}
+function buildForest(ac,out) {
+  const src=ac.createBufferSource(); src.buffer=pinkNoise(ac,6); src.loop=true;
+  const bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=650; bp.Q.value=0.4;
+  const bg=ac.createGain(); bg.gain.value=0.35;
+  src.connect(bp); bp.connect(bg); bg.connect(out);
+  src.start(); nodes.natSrc=src;
+  scheduleBirds(ac,out);
+}
+function scheduleBirds(ac,out) {
+  function next() {
+    if(!isPlaying) return;
+    const d=3+Math.random()*9;
+    nodes.birdT=setTimeout(()=>{
+      if(!isPlaying) return;
+      const freqs=[3200,4000,2800,3700,5100];
+      const f=freqs[Math.floor(Math.random()*freqs.length)];
+      for(let i=0;i<3;i++) setTimeout(()=>{
+        if(!isPlaying) return;
+        const o=ac.createOscillator(); o.type='sine';
+        o.frequency.setValueAtTime(f,ac.currentTime);
+        o.frequency.linearRampToValueAtTime(f*1.18,ac.currentTime+0.06);
+        o.frequency.linearRampToValueAtTime(f*0.88,ac.currentTime+0.13);
+        const g=ac.createGain();
+        g.gain.setValueAtTime(0,ac.currentTime);
+        g.gain.linearRampToValueAtTime(0.055*vols.nature,ac.currentTime+0.02);
+        g.gain.linearRampToValueAtTime(0,ac.currentTime+0.15);
+        o.connect(g); g.connect(out); o.start(); o.stop(ac.currentTime+0.16);
+      },i*145);
+      next();
+    },d*1000);
+  }
+  next();
+}
+function buildFire(ac,out) {
+  const src=ac.createBufferSource(); src.buffer=brownNoise(ac,5); src.loop=true;
+  const lp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=750; lp.Q.value=2;
+  const hp=ac.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=55;
+  const lfo=ac.createOscillator(); lfo.type='sawtooth'; lfo.frequency.value=4.2;
+  const lg=ac.createGain(); lg.gain.value=0.25;
+  const bg=ac.createGain(); bg.gain.value=0.65;
+  lfo.connect(lg); lg.connect(bg.gain);
+  src.connect(hp); hp.connect(lp); lp.connect(bg); bg.connect(out);
+  lfo.start(); src.start();
+  nodes.natSrc=src; nodes.natLfo=lfo;
+  scheduleCrackles(ac,out);
+}
+function scheduleCrackles(ac,out) {
+  function next() {
+    if(!isPlaying) return;
+    nodes.crackT=setTimeout(()=>{
+      if(!isPlaying) return;
+      const len=Math.floor(ac.sampleRate*0.03);
+      const b=ac.createBuffer(1,len,ac.sampleRate);
+      const d=b.getChannelData(0);
+      for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
+      const s=ac.createBufferSource(); s.buffer=b;
+      const bp=ac.createBiquadFilter(); bp.type='bandpass';
+      bp.frequency.value=800+Math.random()*2200; bp.Q.value=5;
+      const g=ac.createGain();
+      g.gain.setValueAtTime(0.07*vols.nature,ac.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.0001,ac.currentTime+0.03);
+      s.connect(bp); bp.connect(g); g.connect(out); s.start();
+      next();
+    },(0.3+Math.random()*2)*1000);
+  }
+  next();
+}
+function buildWind(ac,out) {
+  const src=ac.createBufferSource(); src.buffer=pinkNoise(ac,8); src.loop=true;
+  const bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=380; bp.Q.value=0.6;
+  const lp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=1100;
+  const bg=ac.createGain(); bg.gain.value=0.5;
+  const lfo=ac.createOscillator(); lfo.type='sine'; lfo.frequency.value=0.06;
+  const lg=ac.createGain(); lg.gain.value=0.3;
+  lfo.connect(lg); lg.connect(bg.gain);
+  function sweep() {
+    if(!isPlaying) return;
+    const t=2+Math.random()*4;
+    bp.frequency.linearRampToValueAtTime(200+Math.random()*800, ac.currentTime+t);
+    nodes.windT=setTimeout(sweep,t*1000);
+  }
+  sweep();
+  src.connect(bp); bp.connect(lp); lp.connect(bg); bg.connect(out);
+  lfo.start(); src.start();
+  nodes.natSrc=src; nodes.natLfo=lfo;
+}
+function stopNature() {
+  clearTimeout(nodes.birdT); clearTimeout(nodes.crackT); clearTimeout(nodes.windT);
+  try{ nodes.natSrc&&nodes.natSrc.stop(); }catch(e){}
+  try{ nodes.natLfo&&nodes.natLfo.stop(); }catch(e){}
+  ['natSrc','natLfo','natGain'].forEach(k=>nodes[k]=null);
+}
+
+// ═══════════════════════════════════
+//  CONTROLS
+// ═══════════════════════════════════
+function pickSound(btn,s) {
+  document.querySelectorAll('.nat-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  selSound=s;
+  if(isPlaying){ stopNature(); if(s!=='none') startNature(); }
+}
+function pickDur(btn,m) {
+  document.querySelectorAll('.dur-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); selDur=m;
+}
+function setVol(type,val) {
+  vols[type]=val/100;
+  document.getElementById(type==='bin'?'vBVal':'vNVal').textContent=val+'%';
+  if(type==='bin' && nodes.binGain) nodes.binGain.gain.setTargetAtTime(vols.bin,ctx.currentTime,0.1);
+  if(type==='nature' && nodes.natGain) nodes.natGain.gain.setTargetAtTime(vols.nature,ctx.currentTime,0.1);
+}
+
+// ═══════════════════════════════════
+//  TIMER
+// ═══════════════════════════════════
+function startTimer() {
+  startTime=Date.now(); const total=selDur*60000;
+  clearInterval(timerInt);
+  timerInt=setInterval(()=>{
+    const elapsed=Date.now()-startTime;
+    const pct=Math.min(100,(elapsed/total)*100);
+    document.getElementById('tFill').style.width=pct+'%';
+    const rem=Math.max(0,total-elapsed);
+    const m=Math.floor(rem/60000), s=Math.floor((rem%60000)/1000);
+    document.getElementById('tLabel').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+    if(elapsed>=total) { addLog(); togglePlay(); }
+  },1000);
+}
+function stopTimer() {
+  clearInterval(timerInt);
+  document.getElementById('tFill').style.width='0%';
+  document.getElementById('tLabel').textContent='—';
+}
+
+// ═══════════════════════════════════
+//  PLAY / STOP
+// ═══════════════════════════════════
+function togglePlay() {
+  if(isPlaying) { stopAll(); } else { startAll(); }
+}
+function startAll() {
+  isPlaying=true; getCtx();
+  startBinaural(); startNature(); startTimer();
+  const btn=document.getElementById('playBtn');
+  btn.innerHTML=`⏹ <span data-t="stop">${T[lang].stop}</span>`;
+}
+function stopAll() {
+  isPlaying=false;
+  stopBinaural(); stopNature(); stopTimer();
+  const btn=document.getElementById('playBtn');
+  btn.innerHTML=`▶ <span data-t="play">${T[lang].play}</span>`;
+}
+
+// ═══════════════════════════════════
+//  SESSION LOG
+// ═══════════════════════════════════
+function addLog() {
+  const f=FREQS[selIdx];
+  const now=new Date();
+  const ts=`${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+  const item=document.createElement('div');
+  item.className='log-item';
+  item.innerHTML=`<span class="lt">${ts}</span><span style="color:${f.col}">${f.name} ${f.hz}Hz</span><span>${selSound} · ${selDur}мин</span>`;
+  const list=document.getElementById('logList');
+  if(list.querySelector('[data-t=no_sessions]')) list.innerHTML='';
+  list.prepend(item);
+}
+
+// ═══════════════════════════════════
+//  DOWNLOAD WAV
+// ═══════════════════════════════════
+async function doDownload() {
+  const msg=document.getElementById('renderMsg'); msg.style.display='block';
+  const sec=Math.min(selDur*60,600), sr=44100;
+  const off=new OfflineAudioContext(2, sr*sec, sr);
+  const f=FREQS[selIdx]; const base=200;
+  const merger=off.createChannelMerger(2);
+  const bG=off.createGain(); bG.gain.value=vols.bin;
+  merger.connect(bG); bG.connect(off.destination);
+  const oL=off.createOscillator(); oL.type='sine'; oL.frequency.value=base;
+  const oR=off.createOscillator(); oR.type='sine'; oR.frequency.value=base+f.hz;
+  const gL=off.createGain(); gL.gain.value=1;
+  const gR=off.createGain(); gR.gain.value=1;
+  oL.connect(gL); gL.connect(merger,0,0);
+  oR.connect(gR); gR.connect(merger,0,1);
+  oL.start(); oR.start();
+
+  if(selSound!=='none') {
+    const nG=off.createGain(); nG.gain.value=vols.nature; nG.connect(off.destination);
+    const nb=selSound==='ocean'||selSound==='fire' ? brownNoise(off,Math.min(sec,30)) : pinkNoise(off,Math.min(sec,30));
+    const nS=off.createBufferSource(); nS.buffer=nb; nS.loop=true;
+    const flt=off.createBiquadFilter();
+    flt.type=selSound==='rain'?'highpass':selSound==='ocean'?'lowpass':'bandpass';
+    flt.frequency.value=selSound==='rain'?1100:selSound==='ocean'?500:600;
+    nS.connect(flt); flt.connect(nG); nS.start();
+  }
+  try {
+    const rendered=await off.startRendering();
+    const wav=toWav(rendered);
+    const url=URL.createObjectURL(new Blob([wav],{type:'audio/wav'}));
+    const a=document.createElement('a');
+    a.href=url; a.download=`binaural_${f.hz}hz_${f.name}_${selSound}.wav`;
+    a.click(); URL.revokeObjectURL(url);
+  } catch(e){ alert('Error: '+e.message); }
+  msg.style.display='none';
+}
+
+function toWav(buf) {
+  const nC=buf.numberOfChannels, nS=buf.length, sr=buf.sampleRate;
+  const bS=2, bA=nC*bS, dS=nS*bA;
+  const ab=new ArrayBuffer(44+dS), v=new DataView(ab);
+  const ws=(o,s)=>{for(let i=0;i<s.length;i++) v.setUint8(o+i,s.charCodeAt(i));};
+  ws(0,'RIFF'); v.setUint32(4,36+dS,true); ws(8,'WAVE'); ws(12,'fmt ');
+  v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,nC,true);
+  v.setUint32(24,sr,true); v.setUint32(28,sr*bA,true); v.setUint16(32,bA,true);
+  v.setUint16(34,16,true); ws(36,'data'); v.setUint32(40,dS,true);
+  const chs=[]; for(let c=0;c<nC;c++) chs.push(buf.getChannelData(c));
+  let off=44;
+  for(let i=0;i<nS;i++) for(let c=0;c<nC;c++){
+    const s=Math.max(-1,Math.min(1,chs[c][i]));
+    v.setInt16(off,s<0?s*0x8000:s*0x7FFF,true); off+=2;
+  }
+  return ab;
+}
+
+// ═══════════════════════════════════
+//  INIT
+// ═══════════════════════════════════
+buildGrid();
+updateInfo();
+</script>
+</body>
+</html>
